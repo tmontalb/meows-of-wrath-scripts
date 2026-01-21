@@ -12,6 +12,8 @@ public class ScreenFader : MonoBehaviour
     [SerializeField] private Image fadeImage;
     [SerializeField] private Color fadeColor = Color.black;
 
+    private Coroutine fadeRoutine;
+
     private void Awake()
     {
         if (I != null && I != this)
@@ -32,19 +34,19 @@ public class ScreenFader : MonoBehaviour
             return;
         }
 
-        // Force full-screen overlay and make sure it actually renders on top
+        // Force full-screen overlay
         var rt = fadeImage.rectTransform;
         rt.anchorMin = Vector2.zero;
         rt.anchorMax = Vector2.one;
         rt.offsetMin = Vector2.zero;
         rt.offsetMax = Vector2.zero;
 
-        // Make sure the Canvas is on top of everything
+        // Make sure the fader canvas is on top
         var canvas = fadeImage.GetComponentInParent<Canvas>();
         if (canvas != null)
         {
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas.sortingOrder = 1000;   // above pause menus etc.
+            canvas.sortingOrder = 1000;
         }
 
         fadeImage.enabled = true;
@@ -59,7 +61,8 @@ public class ScreenFader : MonoBehaviour
     // Convenience: reload a scene with fade
     public void ReloadSceneWithFade(string sceneName, float fadeOut = 0.3f, float fadeIn = 0.3f)
     {
-        StartCoroutine(FadeOutIn(() =>
+        if (fadeRoutine != null) StopCoroutine(fadeRoutine);
+        fadeRoutine = StartCoroutine(FadeOutIn(() =>
         {
             SceneManager.LoadScene(sceneName);
         }, fadeOut, fadeIn));
@@ -70,11 +73,13 @@ public class ScreenFader : MonoBehaviour
         if (fadeImage == null)
         {
             middleAction?.Invoke();
+            fadeRoutine = null;
             yield break;
         }
 
         fadeImage.enabled = true;
-        fadeImage.raycastTarget = true;
+        // Set to true only if you WANT to block clicks during fade
+        fadeImage.raycastTarget = false;
 
         // --- Fade OUT ---
         float t = 0f;
@@ -93,14 +98,15 @@ public class ScreenFader : MonoBehaviour
         fadeImage.color = c;
 
         middleAction?.Invoke();
-        yield return null; // let scene load
+        yield return new WaitForEndOfFrame();
 
-        // Refresh reference in case of scene load shenanigans
+        // Refresh reference in case the hierarchy changed
         if (fadeImage == null)
         {
             fadeImage = GetComponentInChildren<Image>(true);
             if (fadeImage == null)
             {
+                fadeRoutine = null;
                 yield break;
             }
         }
@@ -124,16 +130,7 @@ public class ScreenFader : MonoBehaviour
         c.a = 0f;
         fadeImage.color = c;
         fadeImage.raycastTarget = false;
-    }
 
-    // Debug helper: press F to test fade without dying
-    private void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.F))
-        {
-            StartCoroutine(FadeOutIn(() =>
-            {
-            }, 0.3f, 0.3f));
-        }
+        fadeRoutine = null;
     }
 }

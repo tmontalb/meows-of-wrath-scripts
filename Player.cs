@@ -1,7 +1,6 @@
 using UnityEngine;
 using System.Collections;
 using UnityEngine.SceneManagement;
-using UnityEngine.SceneManagement;
 
 
 [RequireComponent(typeof(Controller2D))]
@@ -34,8 +33,8 @@ public class Player : MonoBehaviour
 	public Vector2 wallJumpOff;
 	public Vector2 wallLeap;
 
-	public float wallSlideSpeedMax = 10;
-	public float wallStickTime = .15f;
+	public float wallSlideSpeedMax;
+	public float wallStickTime;
 	float timeToWallUnstick;
 	public float bumpTime;
 
@@ -74,6 +73,30 @@ public class Player : MonoBehaviour
     private SpriteRenderer mySpriteRenderer;
 
     Animator animator;
+
+    [Header("Wall Slide (Normal)")]
+    [SerializeField] private float normalWallStickTime = 0.25f;
+    [SerializeField] private float normalWallSlideSpeedMax = 10;
+
+    [Header("Wall Slide (Easy Mode)")]
+    [SerializeField] private float easyWallStickTime = 1f;
+    [SerializeField] private float easyWallSlideSpeedMax = 3;
+
+    private void Awake()
+    {
+        ApplyDifficulty(DifficultySettings.EasyMode);
+    }
+
+    public void ApplyDifficulty(bool easyMode)
+    {
+        wallStickTime = easyMode ? easyWallStickTime : normalWallStickTime;
+        wallSlideSpeedMax = easyMode ? easyWallSlideSpeedMax : normalWallSlideSpeedMax;
+    }
+
+	public void ApplyDifficulty()
+	{
+		ApplyDifficulty(DifficultySettings.EasyMode);
+	}
 
 	void Start()
 	{
