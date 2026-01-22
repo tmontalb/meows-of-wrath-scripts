@@ -10,7 +10,7 @@
         public Controller2D controller;
         public GameObject direction;
         public TextMeshProUGUI cueText;
-        public int zoomOut;
+        public float zoomOut = 1f;
         public int zoomIn;
 
         float initialCameraSize = 0;
@@ -55,8 +55,9 @@
             if (collision.CompareTag("Player"))
             {       
                 if (this.transform.parent.name == "Zoom"){
-                    controller.zoneInfo.zoomBackIn = cameraGameObject.GetComponent<Camera>().orthographicSize;
+                    controller.zoneInfo.insideZoomZone = true;
                     controller.zoneInfo.zoomOut = zoomOut;
+                    controller.zoneInfo.exitZone = false;
                 }
                 if (this.transform.parent.name == "Help"){
                     switch (this.transform.name){
@@ -139,8 +140,11 @@
         {
             if (collision.CompareTag("Player"))
             {            
-                if (this.transform.parent.name == "Zoom"){
-                    controller.zoneInfo.exitZone = true;   
+                if (this.transform.parent.name == "Zoom")
+                {
+                    controller.zoneInfo.insideZoomZone = false;
+                    controller.zoneInfo.zoomOut = 0f;     // no zoom zone active anymore
+                    controller.zoneInfo.exitZone = true;  // now camera can zoom back to default
                 }
                 if (this.transform.parent.name == "Direction"){
                     controller.activeDirectionZones--;

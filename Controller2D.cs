@@ -775,6 +775,7 @@ void ResolveEnemyOverlap()
 
 	public struct ZoneInfo
 	{
+	    public bool insideZoomZone;
 		public float zoomBackIn;
 		public bool exitZone;
 		public float zoomOut;
@@ -782,6 +783,7 @@ void ResolveEnemyOverlap()
 		{
 			zoomBackIn = zoomOut = 0;
 			exitZone = false;
+		    insideZoomZone = false;
 		}
 	}
 	
